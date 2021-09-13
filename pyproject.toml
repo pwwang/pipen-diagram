@@ -9,7 +9,7 @@ homepage = "https://github.com/pwwang/pipen-diagram"
 repository = "https://github.com/pwwang/pipen-diagram"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.7.1"
 pipen = "^0.1"
 graphviz = "0.*"
 
