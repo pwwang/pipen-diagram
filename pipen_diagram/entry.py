@@ -83,7 +83,7 @@ class PipenDiagram:
                         "multiple dependent processes."
                     )
 
-                continue
+                continue  # pragma: no cover
 
             if node not in pipen.starts:
                 diagram.add_node(node, "end" if not node.nexts else None)
