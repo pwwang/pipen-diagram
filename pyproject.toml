@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "pipen-diagram"
+version = "0.0.1"
+description = "Draw pipeline diagrams for pipen."
+authors = ["pwwang <pwwang@pwwang.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/pwwang/pipen-diagram"
+repository = "https://github.com/pwwang/pipen-diagram"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pipen = "^0.1"
+graphviz = "0.*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry.plugins.pipen]
+diagram = "pipen_diagram:PipenDiagram"
+
+[tool.pytest.ini_options]
+addopts = "-vv -W error::UserWarning --cov-config=.coveragerc --cov=pipen_diagram --cov-report xml:.coverage.xml --cov-report term-missing"
+console_output_style = "progress"
+junit_family = "xunit1"
+
+[tool.mypy]
+ignore_missing_imports = true
+allow_redefinition = true
+disable_error_code = ["attr-defined", "no-redef"]
+show_error_codes = true
+strict_optional = false
+
+[tool.black]
+line-length = 80
+target-version = ['py37', 'py38', 'py39']
+include = '\.pyi?$'

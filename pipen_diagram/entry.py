@@ -1,0 +1,95 @@
+"""Creates the plugin"""
+
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Tuple, Type
+from pipen import plugin
+from pipen.utils import get_logger
+
+from .diagram import Diagram
+
+logger = get_logger("diagram", "debug")
+
+if TYPE_CHECKING:  # pragma: no cover
+    from pipen import Pipen, Proc
+
+
+def _get_mate(proc: Type["Proc"]) -> Iterable[Tuple[Type["Proc"], bool]]:
+    """Find the mate starting with proc
+
+    Args:
+        proc: The process
+
+    Yields:
+        A tuple of the dependent process and whether there are hidden processes
+        along the path.
+    """
+    if proc.nexts:
+        for nproc in proc.nexts:
+            if nproc.plugin_opts and nproc.plugin_opts.get(
+                "diagram_hide", False
+            ):
+                for nnproc, _ in _get_mate(nproc):
+                    yield (nnproc, True)
+            else:
+                yield (nproc, False)
+
+
+class PipenDiagram:
+
+    """pipen-diagram plugin: Draw pipeline diagrams for pipen"""
+
+    __version__: str = None
+
+    @plugin.impl
+    def on_setup(self, plugin_opts: Dict[str, Any]) -> None:
+        """Default configurations"""
+        # pipeline level: name or detailed theme
+        plugin_opts.diagram_theme = "default"
+        # pipeline level: save dot file?
+        plugin_opts.diagram_savedot = False
+        # process level: hide certain processes in diagram
+        plugin_opts.diagram_hide = False
+
+    @plugin.impl
+    async def on_start(self, pipen: "Pipen") -> None:
+        """Print some configuration items of the process"""
+        logger.debug(
+            "Building diagram and saving to `%s/diagram.svg`", pipen.outdir
+        )
+        diagram = Diagram(
+            f"pipen: {pipen.name}",
+            pipen.outdir / "diagram",
+            savedot=pipen.config.plugin_opts.get("diagram_savedot", False),
+        )
+
+        if (
+            pipen.config.plugin_opts
+            and "diagram_theme" in pipen.config.plugin_opts
+        ):
+            diagram.set_theme(pipen.config.plugin_opts.diagram_theme)
+
+        for node in pipen.starts:
+            diagram.add_node(node, "start")
+        for node in pipen.procs:
+            if node.plugin_opts and node.plugin_opts.get("diagram_hide", False):
+                if not node.nexts:
+                    raise ValueError(
+                        "Cannot hide end process {node} from diagram."
+                    )
+
+                if len(node.requires) > 1 and len(node.nexts) > 1:
+                    raise ValueError(
+                        f"Cannot hide process {node} from diagram with "
+                        "multiple required processes or "
+                        "multiple dependent processes."
+                    )
+
+                continue
+
+            if node not in pipen.starts:
+                diagram.add_node(node, "end" if not node.nexts else None)
+
+            for dep_proc, has_hidden in _get_mate(node):
+                diagram.add_link(node, dep_proc, has_hidden=has_hidden)
+
+        diagram.build()
+        diagram.save()
