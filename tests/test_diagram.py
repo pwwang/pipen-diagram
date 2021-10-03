@@ -76,7 +76,7 @@ def test_diagram(pipen, caplog):
     p3 = Proc.from_proc(HiddenProc, requires=p2)
     p4 = Proc.from_proc(NormalProc, requires=p3)
 
-    pipen.run(p1)
+    pipen.set_starts(p1).run()
     dot = (pipen.outdir / "diagram.dot").read_text()
     assert "pipen: pipeline" in dot
     svg = (pipen.outdir / "diagram.svg").read_text()
@@ -87,7 +87,7 @@ def test_hide_end_proc(pipen):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(HiddenProc, requires=p1)
     with pytest.raises(ValueError, match="Cannot hide end process"):
-        pipen.run(p1)
+        pipen.set_starts(p1).run()
 
 
 def test_hide_multi_rel_proc(pipen):
@@ -97,7 +97,7 @@ def test_hide_multi_rel_proc(pipen):
     p4 = Proc.from_proc(NormalProc, requires=p3)
     p5 = Proc.from_proc(NormalProc, requires=p3)
     with pytest.raises(ValueError, match="Cannot hide process"):
-        pipen.run(p1, p2)
+        pipen.set_starts(p1, p2).run()
 
 
 def test_dark_theme(pipen_dark):
@@ -106,7 +106,7 @@ def test_dark_theme(pipen_dark):
     p3 = Proc.from_proc(HiddenProc, requires=p2)
     p4 = Proc.from_proc(NormalProc, requires=p3)
 
-    pipen_dark.run(p1)
+    pipen_dark.set_starts(p1).run()
     svg = (pipen_dark.outdir / "diagram.svg").read_text()
     assert "#59b95d" in svg
 
@@ -114,6 +114,6 @@ def test_dark_theme(pipen_dark):
 def test_custom_theme(pipen_custom_theme):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
 
-    pipen_custom_theme.run(p1)
+    pipen_custom_theme.set_starts(p1).run()
     svg = (pipen_custom_theme.outdir / "diagram.svg").read_text()
     assert "#59b95f" in svg
