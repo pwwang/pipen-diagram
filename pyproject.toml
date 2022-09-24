@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipen-diagram"
-version = "0.1.0"
+version = "0.1.1"
 description = "Draw pipeline diagrams for pipen."
 authors = ["pwwang <pwwang@pwwang.com>"]
 license = "MIT"
@@ -25,7 +25,7 @@ build-backend = "poetry.masonry.api"
 diagram = "pipen_diagram:PipenDiagram"
 
 [tool.pytest.ini_options]
-addopts = "-vv -W error::UserWarning --cov-config=.coveragerc --cov=pipen_diagram --cov-report xml:.coverage.xml --cov-report term-missing"
+addopts = "-vv -W error::UserWarning -p no:asyncio --cov-config=.coveragerc --cov=pipen_diagram --cov-report xml:.coverage.xml --cov-report term-missing"
 console_output_style = "progress"
 junit_family = "xunit1"
 
