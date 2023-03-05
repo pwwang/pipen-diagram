@@ -1,4 +1,5 @@
 """Creates the plugin"""
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Tuple, Type
 from pipen import plugin
@@ -12,7 +13,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from pipen import Pipen, Proc
 
 
-def _get_mate(proc: Type["Proc"]) -> Iterable[Tuple[Type["Proc"], bool]]:
+def _get_mate(proc: Type[Proc]) -> Iterable[Tuple[Type[Proc], bool]]:
     """Find the mate starting with proc
 
     Args:
@@ -50,13 +51,13 @@ class PipenDiagram:
         config.plugin_opts.diagram_hide = False
 
     @plugin.impl
-    async def on_start(self, pipen: "Pipen") -> None:
+    async def on_start(self, pipen: Pipen) -> None:
         """Print some configuration items of the process"""
         logger.debug(
             "Building diagram and saving to `%s/diagram.svg`", pipen.outdir
         )
         diagram = Diagram(
-            f"pipen: {pipen.name}",
+            pipen.name,
             pipen.outdir / "diagram",
             savedot=pipen.config.plugin_opts.get("diagram_savedot", False),
         )
@@ -67,8 +68,6 @@ class PipenDiagram:
         ):
             diagram.set_theme(pipen.config.plugin_opts.diagram_theme)
 
-        for node in pipen.starts:
-            diagram.add_node(node, "start")
         for node in pipen.procs:
             if node.plugin_opts and node.plugin_opts.get("diagram_hide", False):
                 if not node.nexts:
@@ -85,11 +84,29 @@ class PipenDiagram:
 
                 continue  # pragma: no cover
 
-            if node not in pipen.starts:
-                diagram.add_node(node, "end" if not node.nexts else None)
+            role = (
+                "start"
+                if node in pipen.starts
+                else "end"
+                if not node.nexts
+                else None
+            )
+            diagram.add_node(node, group=node.__procgroup__, role=role)
 
             for dep_proc, has_hidden in _get_mate(node):
-                diagram.add_link(node, dep_proc, has_hidden=has_hidden)
+                if (
+                    node.__procgroup__
+                    and dep_proc.__procgroup__ == node.__procgroup__
+                ):
+                    group = node.__procgroup__
+                else:
+                    group = None
+                diagram.add_edge(
+                    node,
+                    dep_proc,
+                    group=group,
+                    has_hidden=has_hidden,
+                )
 
         diagram.build()
         diagram.save()

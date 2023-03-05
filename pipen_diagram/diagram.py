@@ -1,90 +1,172 @@
 """Provides Diagram class that builds and saves the diagrams"""
+from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Mapping, Set, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Mapping,
+    Set,
+    Tuple,
+    Type,
+    MutableMapping,
+)
 from graphviz import Digraph
-from diot import Diot
 
 if TYPE_CHECKING:  # pragma: no cover
     from pathlib import Path
-    from pipen import Proc
+    from pipen import Proc, ProcGroup
 
-THEMES = Diot(
-    default=dict(
-        # The base style to be inherited
-        base=dict(
-            shape="box",
-            style="rounded,filled",
-            fillcolor="#ffffff",
-            color="#000000",
-            fontcolor="#000000",
-        ),
-        # style for start processes
-        start=dict(
-            style="filled",
-            color="#259229",  # green
-        ),
-        # style for end processes
-        end=dict(
-            style="filled",
-            color="#d63125",  # red
-        ),
-        # procset=dict(
-        #     style="filled",
-        #     color="#eeeeee",  # almost white
-        # ),
-        # style for edges
-        edge=dict(),
-        # style for edges with hidden processes along the path
-        edge_hidden=dict(style="dashed"),
-    ),
-    dark=dict(
-        base=dict(
-            shape="box",
-            style="rounded,filled",
-            fillcolor="#555555",
-            color="#ffffff",
-            fontcolor="#ffffff",
-        ),
-        start=dict(
-            style="filled",
-            color="#59b95d",  # green
-            penwidth=2,
-        ),
-        end=dict(
-            style="filled",
-            color="#ea7d75",  # red
-            penwidth=2,
-        ),
-        # procset=dict(
-        #     style="filled",
-        #     color="#eeeeee",  # almost white
-        # ),
-        edge=dict(),
-        edge_hidden=dict(style="dashed"),
-    ),
+THEMES = dict(
+    default={
+        # Basic themes for the graph
+        "graph": {"labelloc": "t"},
+        # Basic themes for nodes
+        "node": {"shape": "box", "style": "rounded"},
+        # Basic themes for edges
+        "edge": {},
+        # Basic themes for edges with hidden processes
+        "edge_hidden": {"style": "dashed"},
+        # Basic themes for start nodes
+        "start": {"shape": "Mdiamond"},
+        # Basic themes for end nodes
+        "end": {"shape": "Msquare"},
+        # Basic themes for process groups
+        "procgroup": {
+            # Themes for the group
+            "style": "filled",
+            "color": "#eeeeee",  # almost white
+            "labeljust": "l",
+            # Themes for the group node
+            "node": {},
+            # Themes for the group edge
+            "edge": {},
+            # Themes for the group edge with hidden processes
+            "edge_hidden": {},
+
+        },
+    },
+    dark={
+        # Basic themes for the graph
+        "graph": {
+            "labelloc": "t",
+            "bgcolor": "#333333",
+            "fontcolor": "#eeeeee",
+        },
+        # Basic themes for nodes
+        "node": {
+            "shape": "box",
+            "style": "rounded",
+            "color": "#eeeeee",
+            "fontcolor": "#eeeeee",
+        },
+        # Basic themes for edges
+        "edge": {"color": "#eeeeee"},
+        # Basic themes for edges with hidden processes
+        "edge_hidden": {"style": "dashed"},
+        # Basic themes for start nodes
+        "start": {"shape": "Mdiamond"},
+        # Basic themes for end nodes
+        "end": {"shape": "Msquare"},
+        # Basic themes for process groups
+        "procgroup": {
+            # Themes for the group
+            "style": "filled",
+            "color": "#666666",
+            "labeljust": "l",
+            # Themes for the group node
+            "node": {},
+            # Themes for the group edge
+            "edge": {},
+            # Themes for the group edge with hidden processes
+            "edge_hidden": {},
+
+        },
+    },
 )
+
+
+class Group:
+    """A group of nodes and edges"""
+
+    def __init__(self, name: str) -> None:
+        """Constructor"""
+        self.name = name
+        self.nodes: Set[Type[Proc]] = set()
+        self.edges: Set[Tuple[Type[Proc], Type[Proc], bool]] = set()
+
+    def add_node(self, node: Type[Proc]) -> None:
+        """Add a node to the group"""
+        self.nodes.add(node)
+
+    def add_edge(
+        self,
+        node1: Type[Proc],
+        node2: Type[Proc],
+        has_hidden: bool = False,
+    ) -> None:
+        """Add an edge to the group"""
+        if not has_hidden:  # pragma: no cover
+            try:
+                self.edges.remove((node1, node2, True))
+            except KeyError:
+                pass
+        self.edges.add((node1, node2, has_hidden))
+
+    def build(self, diagram: Diagram) -> None:
+        """Build the group in the graph"""
+        pg_theme = deepcopy(diagram.theme.get("procgroup", {}))
+        pg_theme_node = pg_theme.pop("node", {})
+        pg_theme_edge = pg_theme.pop("edge", {})
+        pg_theme_edge_hidden = diagram.theme.get("edge_hidden", {}).copy()
+        pg_theme_edge_hidden.update(pg_theme.pop("edge_hidden", {}))
+        with diagram.graph.subgraph(name=f"cluster_{self.name}") as sub:
+            sub.attr(label=self.name, **pg_theme)
+            sub.node_attr.update(**pg_theme_node)
+            sub.edge_attr.update(**pg_theme_edge)
+
+            for node in self.nodes:
+                if node in diagram.starts:
+                    sub.node(
+                        node.name,
+                        tooltip=node.desc or "",
+                        **diagram.theme.get("start", {}),
+                    )
+                elif node in diagram.ends:
+                    sub.node(
+                        node.name,
+                        tooltip=node.desc or "",
+                        **diagram.theme.get("end", {}),
+                    )
+                else:
+                    sub.node(node.name, tooltip=node.desc or "")
+
+            for node1, node2, has_hidden in self.edges:
+                sub.edge(
+                    node1.name,
+                    node2.name,
+                    **(pg_theme_edge_hidden if has_hidden else {}),
+                )
 
 
 class Diagram:
     """Build and save diagrams"""
 
-    def __init__(self, desc: str, outprefix: "Path", savedot: bool) -> None:
+    def __init__(self, name: str, outprefix: Path, savedot: bool) -> None:
         """Constructor"""
-        self.graph = Digraph(desc, format="svg")
+        self.graph = Digraph(name)
+        # Add some distance between the label and the graph
+        self.graph.attr(label=f"{name}\n ")
         self.outprefix = outprefix
         self.savedot = savedot
-        self.theme = THEMES.default
-        self.nodes: Set[Type["Proc"]] = set()
-        self.starts: Set[Type["Proc"]] = set()
-        self.ends: Set[Type["Proc"]] = set()
-        self.links: Set[Tuple[Type["Proc"], Type["Proc"], bool]] = set()
+        self.theme = THEMES["default"]
+        self.nodes: Set[Type[Proc]] = set()
+        self.starts: Set[Type[Proc]] = set()
+        self.ends: Set[Type[Proc]] = set()
+        self.groups: MutableMapping[str, Group] = {}
+        self.edges: Set[Tuple[Type[Proc], Type[Proc], bool]] = set()
 
-    def set_theme(
-        self,
-        theme: Union[str, Mapping[str, Any]],
-        base: str = "default",
-    ) -> None:
+    def set_theme(self, theme: str | Mapping[str, Any]) -> None:
         """Set the theme
 
         Args:
@@ -94,19 +176,24 @@ class Diagram:
             base: The base theme to be based on, when you pass a custom theme
         """
         if isinstance(theme, dict):
-            self.theme = deepcopy(THEMES[base])
-            for key, val in self.theme.items():
-                val.update(theme.get(key, {}))
-        elif not theme:  # pragma: no cover
-            self.theme = THEMES[base]
+            self.theme = theme
         else:
-            self.theme = THEMES[theme]
+            try:
+                self.theme = THEMES[theme]  # type: ignore
+            except KeyError:
+                raise ValueError(f"Theme {theme} not found") from None
 
-    def add_node(self, node: Type["Proc"], role: str = None) -> None:
+    def add_node(
+        self,
+        node: Type[Proc],
+        group: ProcGroup | None = None,
+        role: str | None = None,
+    ) -> None:
         """Add a node to the diagram
 
         Args:
             node: The process
+            group: The group name
             role: Is it a start proc, an end proc or None (a normal proc).
         """
         if role == "start":
@@ -115,59 +202,73 @@ class Diagram:
         if role == "end":
             self.ends.add(node)
 
-        self.nodes.add(node)
+        if group:
+            self.groups.setdefault(group.name, Group(group.name)).add_node(node)
+        else:
+            self.nodes.add(node)
 
-    def add_link(
+    def add_edge(
         self,
-        node1: Type["Proc"],
-        node2: Type["Proc"],
+        node1: Type[Proc],
+        node2: Type[Proc],
+        group: ProcGroup | None = None,
         has_hidden: bool = False,
     ) -> None:
-        """Add a link to the chart
+        """Add a edge to the chart
 
         Args:
             node1: The first process node.
             node2: The second process node.
-            has_hidden: Whether there are processes hidden along the link
+            group: The group name
+            has_hidden: Whether there are processes hidden along the edge
         """
-        if not has_hidden:
-            try:
-                self.links.remove((node1, node2, True))
-            except KeyError:
-                pass
+        if group:
+            self.groups.setdefault(group.name, Group(group.name)).add_edge(
+                node1, node2, has_hidden
+            )
+        else:
+            if not has_hidden:
+                try:
+                    self.edges.remove((node1, node2, True))
+                except KeyError:
+                    pass
 
-        self.links.add((node1, node2, has_hidden))
+            self.edges.add((node1, node2, has_hidden))
 
     def build(self) -> None:
         """Assemble the graph for compiling"""
-        # nodes
-        graph = self.graph
+        self.graph.graph_attr.update(self.theme.get("graph", {}))
+        self.graph.attr("node", **self.theme.get("node", {}))
+        self.graph.attr("edge", **self.theme.get("edge", {}))
+        for group in self.groups.values():
+            group.build(self)
+
         for node in self.nodes:
-            # copy the theme
-            theme = deepcopy(self.theme["base"])
             if node in self.starts:
-                theme.update(self.theme["start"])
-            if node in self.ends:
-                theme.update(self.theme["end"])
-            if node.desc != "Undescribed":
-                theme["tooltip"] = node.desc
-            graph.node(node.name, **{k: str(v) for k, v in theme.items()})
+                self.graph.node(
+                    node.name,
+                    tooltip=node.desc or "",
+                    **self.theme.get("start", {}),
+                )
+            elif node in self.ends:
+                self.graph.node(
+                    node.name,
+                    tooltip=node.desc or "",
+                    **self.theme.get("end", {}),
+                )
+            else:
+                self.graph.node(node.name, tooltip=node.desc or "")
 
         # edges
-        for node1, node2, has_hidden in self.links:
+        for node1, node2, has_hidden in self.edges:
             self.graph.edge(
                 node1.name,
                 node2.name,
-                **{
-                    k: str(v)
-                    for k, v in self.theme[
-                        "edge_hidden" if has_hidden else "edge"
-                    ].items()
-                },
+                **(self.theme.get("edge_hidden", {}) if has_hidden else {}),
             )
 
     def save(self) -> None:
         """Save the graph"""
         if self.savedot:
             self.graph.save(f"{self.outprefix}.dot")
-        self.graph.render(self.outprefix, cleanup=True)
+        self.graph.render(self.outprefix, format="svg", cleanup=True)

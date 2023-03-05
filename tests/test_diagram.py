@@ -48,12 +48,12 @@ def pipen_custom_theme():
         cache=False,
         plugins=[PipenDiagram],
         plugin_opts={
-            "diagram_savedot": False,
+            "diagram_savedot": True,
             "diagram_theme": dict(
                 start=dict(
                     style="filled",
                     color="#59b95f",  # green
-                    penwidth=2,
+                    penwidth="2",
                 )
             ),
         },
@@ -78,9 +78,9 @@ def test_diagram(pipen, caplog):
 
     pipen.set_starts(p1).run()
     dot = (pipen.outdir / "diagram.dot").read_text()
-    assert "pipen: pipeline" in dot
+    assert "digraph pipeline" in dot
     svg = (pipen.outdir / "diagram.svg").read_text()
-    assert "pipen: pipeline" in svg
+    assert "<title>pipeline" in svg
 
 
 def test_hide_end_proc(pipen):
@@ -108,7 +108,7 @@ def test_dark_theme(pipen_dark):
 
     pipen_dark.set_starts(p1).run()
     svg = (pipen_dark.outdir / "diagram.svg").read_text()
-    assert "#59b95d" in svg
+    assert "#333333" in svg
 
 
 def test_custom_theme(pipen_custom_theme):
@@ -117,3 +117,62 @@ def test_custom_theme(pipen_custom_theme):
     pipen_custom_theme.set_starts(p1).run()
     svg = (pipen_custom_theme.outdir / "diagram.svg").read_text()
     assert "#59b95f" in svg
+
+
+def test_group():
+    from pipen import Proc, Pipen, ProcGroup
+    from pipen.exceptions import ProcInputKeyError
+
+    class PG(ProcGroup):
+        """Process Group"""
+        @ProcGroup.add_proc
+        def c(self):
+            """Process C"""
+            class C(Proc):
+                ...
+
+            return C
+
+        @ProcGroup.add_proc
+        def c1(self):
+            """Process C1"""
+            class C1(Proc):
+                requires = self.c
+                plugin_opts = {"diagram_hide": True}
+
+            return C1
+
+        @ProcGroup.add_proc
+        def c2(self):
+            """Process C2"""
+            class C2(Proc):
+                requires = self.c1
+
+            return C2
+
+        @ProcGroup.add_proc
+        def d(self):
+            """Process D"""
+            class D(Proc):
+                requires = self.c2
+
+            return D
+
+    pg = PG()
+    with pytest.raises(ProcInputKeyError, match="No input provided"):
+        Pipen(
+            "MyPipeline",
+            plugin_opts={"diagram_savedot": True},
+            outdir=TEST_TMPDIR / "group1",
+        ).set_start(pg.c).run()
+
+    dot = (TEST_TMPDIR / "group1" / "diagram.dot").read_text()
+    assert "digraph MyPipeline" in dot
+    assert "subgraph cluster_PG" in dot
+
+    with pytest.raises(ValueError, match="Theme x not found"):
+        Pipen(
+            "MyPipeline",
+            plugin_opts={"diagram_theme": "x"},
+            outdir=TEST_TMPDIR / "group2",
+        ).set_start(pg.c).run()

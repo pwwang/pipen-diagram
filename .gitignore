@@ -115,3 +115,4 @@ t-*.ipynb
 .history/
 
 *_results
+/test.py
