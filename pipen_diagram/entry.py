@@ -91,14 +91,15 @@ class PipenDiagram:
                 if not node.nexts
                 else None
             )
-            diagram.add_node(node, group=node.__procgroup__, role=role)
+            diagram.add_node(node, group=node.__meta__["procgroup"], role=role)
 
             for dep_proc, has_hidden in _get_mate(node):
                 if (
-                    node.__procgroup__
-                    and dep_proc.__procgroup__ == node.__procgroup__
+                    node.__meta__["procgroup"]
+                    and dep_proc.__meta__["procgroup"]
+                    == node.__meta__["procgroup"]
                 ):
-                    group = node.__procgroup__
+                    group = node.__meta__["procgroup"]
                 else:
                     group = None
                 diagram.add_edge(
