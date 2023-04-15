@@ -34,7 +34,7 @@ def pipen_dark():
         cache=False,
         plugins=[PipenDiagram],
         plugin_opts={"diagram_savedot": False, "diagram_theme": "dark"},
-        outdir=TEST_TMPDIR / f"pipen_{index}",
+        outdir=TEST_TMPDIR / f"pipen_dark_{index}",
     )
 
 
@@ -70,6 +70,7 @@ class HiddenProc(NormalProc):
     plugin_opts = {"diagram_hide": True}
 
 
+@pytest.mark.forked
 def test_diagram(pipen, caplog):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(NormalProc, requires=p1)
@@ -83,6 +84,7 @@ def test_diagram(pipen, caplog):
     assert "<title>pipeline" in svg
 
 
+@pytest.mark.forked
 def test_hide_end_proc(pipen):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(HiddenProc, requires=p1)
@@ -90,6 +92,7 @@ def test_hide_end_proc(pipen):
         pipen.set_starts(p1).run()
 
 
+@pytest.mark.forked
 def test_hide_multi_rel_proc(pipen):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(NormalProc, input_data=[2])
@@ -100,6 +103,7 @@ def test_hide_multi_rel_proc(pipen):
         pipen.set_starts(p1, p2).run()
 
 
+@pytest.mark.forked
 def test_dark_theme(pipen_dark):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(NormalProc, requires=p1)
@@ -111,6 +115,7 @@ def test_dark_theme(pipen_dark):
     assert "#333333" in svg
 
 
+@pytest.mark.forked
 def test_custom_theme(pipen_custom_theme):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
 
