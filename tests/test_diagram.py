@@ -2,7 +2,7 @@ from pathlib import Path
 from shutil import rmtree
 from tempfile import gettempdir
 import pytest
-from pipen import Pipen, Proc
+from pipen import Pipen, Proc, ProcGroup
 from pipen_diagram import PipenDiagram
 
 TEST_TMPDIR = Path(gettempdir()) / "pipen_diagram_tests"
@@ -119,44 +119,45 @@ def test_custom_theme(pipen_custom_theme):
     assert "#59b95f" in svg
 
 
+class PG(ProcGroup):
+    """Process Group"""
+    @ProcGroup.add_proc
+    def c(self):
+        """Process C"""
+        class C(Proc):
+            ...
+
+        return C
+
+    @ProcGroup.add_proc
+    def c1(self):
+        """Process C1"""
+        class C1(Proc):
+            requires = self.c
+            plugin_opts = {"diagram_hide": True}
+
+        return C1
+
+    @ProcGroup.add_proc
+    def c2(self):
+        """Process C2"""
+        class C2(Proc):
+            requires = self.c1
+
+        return C2
+
+    @ProcGroup.add_proc
+    def d(self):
+        """Process D"""
+        class D(Proc):
+            requires = self.c2
+
+        return D
+
+
+@pytest.mark.forked
 def test_group():
-    from pipen import Proc, Pipen, ProcGroup
     from pipen.exceptions import ProcInputKeyError
-
-    class PG(ProcGroup):
-        """Process Group"""
-        @ProcGroup.add_proc
-        def c(self):
-            """Process C"""
-            class C(Proc):
-                ...
-
-            return C
-
-        @ProcGroup.add_proc
-        def c1(self):
-            """Process C1"""
-            class C1(Proc):
-                requires = self.c
-                plugin_opts = {"diagram_hide": True}
-
-            return C1
-
-        @ProcGroup.add_proc
-        def c2(self):
-            """Process C2"""
-            class C2(Proc):
-                requires = self.c1
-
-            return C2
-
-        @ProcGroup.add_proc
-        def d(self):
-            """Process D"""
-            class D(Proc):
-                requires = self.c2
-
-            return D
 
     pg = PG()
     with pytest.raises(ProcInputKeyError, match="No input provided"):
@@ -169,6 +170,11 @@ def test_group():
     dot = (TEST_TMPDIR / "group1" / "diagram.dot").read_text()
     assert "digraph MyPipeline" in dot
     assert "subgraph cluster_PG" in dot
+
+
+@pytest.mark.forked
+def test_theme_not_found():
+    pg = PG()
 
     with pytest.raises(ValueError, match="Theme x not found"):
         Pipen(
