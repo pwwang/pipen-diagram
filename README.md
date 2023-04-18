@@ -91,7 +91,7 @@ Pipen("MyPipeline").set_start(A).run()
 # Pipen("MyPipeline", plugin_opts={"diagram_theme": "dark"}).set_start(A).run()
 ```
 
-Running `python example.py` will generate `mypipeline_results/diagram.png`:
+Running `python example.py` will generate `MyPipeline-output/diagram.png`:
 
 | Default theme | Dark theme |
 | ----------- | ---------- |
