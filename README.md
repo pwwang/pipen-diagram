@@ -36,11 +36,13 @@ from pipen import Proc, Pipen, ProcGroup
 
 class A(Proc):
     """Process A"""
+    input = "a"
 
 
 class B(Proc):
     """Process B"""
     requires = A
+    input = "b"
     plugin_opts = {"diagram_hide": True}
 
 
@@ -50,7 +52,7 @@ class PG(ProcGroup):
     def c(self):
         """Process C"""
         class C(Proc):
-            ...
+            input = "c"
 
         return C
 
@@ -59,6 +61,7 @@ class PG(ProcGroup):
         """Process C1"""
         class C1(Proc):
             requires = self.c
+            input = "c1"
             plugin_opts = {"diagram_hide": True}
 
         return C1
@@ -67,6 +70,7 @@ class PG(ProcGroup):
     def d(self):
         """Process D"""
         class D(Proc):
+            input = "d"
             requires = self.c1
 
         return D
@@ -78,11 +82,13 @@ pg.c.requires = B
 
 class E(Proc):
     """Process E"""
+    input = "e1,e2"
     requires = pg.d, A
 
 
 class F(Proc):
     """Process F"""
+    input = "f"
     requires = E
 
 
@@ -91,11 +97,11 @@ Pipen("MyPipeline").set_start(A).run()
 # Pipen("MyPipeline", plugin_opts={"diagram_theme": "dark"}).set_start(A).run()
 ```
 
-Running `python example.py` will generate `MyPipeline-output/diagram.png`:
+Running `python example.py` will generate `MyPipeline-output/diagram.svg`:
 
-| Default theme | Dark theme |
-| ----------- | ---------- |
-| ![diagram](./diagram.png) | ![diagram](./diagram_dark.png) |
+| Default theme | Dark theme | Fancy theme | Fancy dark theme |
+| ------------- | ---------- | ----------- | ---------------- |
+| ![diagram](./diagram.svg) | ![diagram_dark](./diagram_dark.svg) | ![diagram_fancy](./diagram_fancy.svg) | ![diagram_fancy_dark](./diagram_fancy_dark.svg) |
 
 [1]: https://github.com/pwwang/pipen
 [2]: https://graphviz.org/

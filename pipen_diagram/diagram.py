@@ -20,17 +20,22 @@ if TYPE_CHECKING:  # pragma: no cover
 THEMES = dict(
     default={
         # Basic themes for the graph
-        "graph": {"labelloc": "t"},
+        "graph": {"labelloc": "t", "fontname": "Helvetica"},
         # Basic themes for nodes
-        "node": {"shape": "box", "style": "rounded"},
+        "node": {
+            "shape": "box",
+            "style": "rounded",
+            "fontsize": "12",
+            "fontname": "Helvetica",
+        },
         # Basic themes for edges
-        "edge": {},
+        "edge": { "arrowsize": "0.8" },
         # Basic themes for edges with hidden processes
         "edge_hidden": {"style": "dashed"},
         # Basic themes for start nodes
-        "start": {"shape": "Mdiamond"},
+        "start": {"shape": "diamond", "style": "solid"},
         # Basic themes for end nodes
-        "end": {"shape": "Msquare"},
+        "end": {"shape": "rectangle", "style": "solid"},
         # Basic themes for process groups
         "procgroup": {
             # Themes for the group
@@ -40,7 +45,51 @@ THEMES = dict(
             # Themes for the group node
             "node": {},
             # Themes for the group edge
-            "edge": {},
+            "edge": { "arrowsize": "0.8" },
+            # Themes for the group edge with hidden processes
+            "edge_hidden": {},
+
+        },
+    },
+    fancy={
+        # Basic themes for the graph
+        "graph": {"labelloc": "t", "fontname": "Helvetica"},
+        # Basic themes for nodes
+        "node": {
+            "shape": "box",
+            "style": "rounded,filled",
+            "fontsize": "12",
+            "fillcolor": "#219ebc",
+            "fontcolor": "#ffffff",
+            "peripheries": "0",
+            "fontname": "Helvetica",
+        },
+        # Basic themes for edges
+        "edge": { "arrowsize": "0.8", "color": "#3d314a" },
+        # Basic themes for edges with hidden processes
+        "edge_hidden": {"style": "dashed"},
+        # Basic themes for start nodes
+        "start": {
+            "shape": "diamond",
+            "style": "solid,filled",
+            "fillcolor": "#4c956c",
+        },
+        # Basic themes for end nodes
+        "end": {
+            "shape": "rectangle",
+            "style": "solid,filled",
+            "fillcolor": "#f26419",
+        },
+        # Basic themes for process groups
+        "procgroup": {
+            # Themes for the group
+            "style": "filled",
+            "color": "#eeeeee",  # almost white
+            "labeljust": "l",
+            # Themes for the group node
+            "node": {},
+            # Themes for the group edge
+            "edge": { "arrowsize": "0.8"},
             # Themes for the group edge with hidden processes
             "edge_hidden": {},
 
@@ -52,6 +101,7 @@ THEMES = dict(
             "labelloc": "t",
             "bgcolor": "#333333",
             "fontcolor": "#eeeeee",
+            "fontname": "Helvetica",
         },
         # Basic themes for nodes
         "node": {
@@ -59,15 +109,58 @@ THEMES = dict(
             "style": "rounded",
             "color": "#eeeeee",
             "fontcolor": "#eeeeee",
+            "fontsize": "12",
+            "fontname": "Helvetica",
         },
         # Basic themes for edges
         "edge": {"color": "#eeeeee"},
         # Basic themes for edges with hidden processes
         "edge_hidden": {"style": "dashed"},
         # Basic themes for start nodes
-        "start": {"shape": "Mdiamond"},
+        "start": {"shape": "diamond", "style": "solid"},
         # Basic themes for end nodes
-        "end": {"shape": "Msquare"},
+        "end": {"shape": "rectangle", "style": "solid"},
+        # Basic themes for process groups
+        "procgroup": {
+            # Themes for the group
+            "style": "filled",
+            "color": "#666666",
+            "labeljust": "l",
+            # Themes for the group node
+            "node": {},
+            # Themes for the group edge
+            "edge": {},
+            # Themes for the group edge with hidden processes
+            "edge_hidden": {},
+
+        },
+    },
+    fancy_dark={
+        # Basic themes for the graph
+        "graph": {
+            "labelloc": "t",
+            "fontname": "Helvetica",
+            "bgcolor": "#333333",
+            "fontcolor": "#eeeeee",
+        },
+        # Basic themes for nodes
+        "node": {
+            "shape": "box",
+            "style": "rounded,filled",
+            "fontsize": "12",
+            "fillcolor": "#219ebc",
+            "fontcolor": "#ffffff",
+            "peripheries": "0",
+            "fontname": "Helvetica",
+        },
+        # Basic themes for edges
+        "edge": { "color": "#eeeeee" },
+        # Basic themes for edges with hidden processes
+        "edge_hidden": {"style": "dashed"},
+        # Basic themes for start nodes
+        "start": {"shape": "diamond", "style": "solid,filled", "fillcolor": "#4c956c"},
+        # Basic themes for end nodes
+        "end": {"shape": "rectangle", "style": "solid,filled", "fillcolor": "#f26419"},
         # Basic themes for process groups
         "procgroup": {
             # Themes for the group
@@ -154,9 +247,9 @@ class Diagram:
 
     def __init__(self, name: str, outprefix: Path, savedot: bool) -> None:
         """Constructor"""
-        self.graph = Digraph(name)
+        self.graph = Digraph(name.strip())
         # Add some distance between the label and the graph
-        self.graph.attr(label=f"{name}\n ")
+        self.graph.attr(label=f"{name.strip()}\n ")
         self.outprefix = outprefix
         self.savedot = savedot
         self.theme = THEMES["default"]
