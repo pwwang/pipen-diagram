@@ -11,7 +11,9 @@ from typing import (
     Type,
     MutableMapping,
 )
+
 from graphviz import Digraph
+from pipen.utils import desc_from_docstring
 
 if TYPE_CHECKING:  # pragma: no cover
     from pathlib import Path
@@ -222,17 +224,32 @@ class Group:
                 if node in diagram.starts:
                     sub.node(
                         node.name,
-                        tooltip=node.desc or "",
+                        tooltip=(
+                            node.desc
+                            or desc_from_docstring(node, None)
+                            or ""
+                        ),
                         **diagram.theme.get("start", {}),
                     )
                 elif node in diagram.ends:
                     sub.node(
                         node.name,
-                        tooltip=node.desc or "",
+                        tooltip=(
+                            node.desc
+                            or desc_from_docstring(node, None)
+                            or ""
+                        ),
                         **diagram.theme.get("end", {}),
                     )
                 else:
-                    sub.node(node.name, tooltip=node.desc or "")
+                    sub.node(
+                        node.name,
+                        tooltip=(
+                            node.desc
+                            or desc_from_docstring(node, None)
+                            or ""
+                        ),
+                    )
 
             for node1, node2, has_hidden in self.edges:
                 sub.edge(
@@ -338,19 +355,35 @@ class Diagram:
 
         for node in self.nodes:
             if node in self.starts:
+                print(node, node.__doc__)
                 self.graph.node(
                     node.name,
-                    tooltip=node.desc or "",
+                    tooltip=(
+                        node.desc
+                        or desc_from_docstring(node, None)
+                        or ""
+                    ),
                     **self.theme.get("start", {}),
                 )
             elif node in self.ends:
                 self.graph.node(
                     node.name,
-                    tooltip=node.desc or "",
+                    tooltip=(
+                        node.desc
+                        or desc_from_docstring(node, None)
+                        or ""
+                    ),
                     **self.theme.get("end", {}),
                 )
             else:
-                self.graph.node(node.name, tooltip=node.desc or "")
+                self.graph.node(
+                    node.name,
+                    tooltip=(
+                        node.desc
+                        or desc_from_docstring(node, None)
+                        or ""
+                    ),
+                )
 
         # edges
         for node1, node2, has_hidden in self.edges:

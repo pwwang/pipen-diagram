@@ -59,6 +59,6 @@ class F(Proc):
     requires = E
 
 
-# Pipen("MyPipeline").set_start(A).run()
+Pipen("MyPipeline").set_start(A).run()
 # Dark theme
-Pipen("MyPipeline", plugin_opts={"diagram_theme": "dark", "diagram_savedot": True}).set_start(A).run()
+# Pipen("MyPipeline", plugin_opts={"diagram_theme": "dark"}).set_start(A).run()
