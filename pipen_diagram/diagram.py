@@ -31,7 +31,7 @@ THEMES = dict(
             "fontname": "Helvetica",
         },
         # Basic themes for edges
-        "edge": { "arrowsize": "0.8" },
+        "edge": {"arrowsize": "0.8"},
         # Basic themes for edges with hidden processes
         "edge_hidden": {"style": "dashed"},
         # Basic themes for start nodes
@@ -47,10 +47,9 @@ THEMES = dict(
             # Themes for the group node
             "node": {},
             # Themes for the group edge
-            "edge": { "arrowsize": "0.8" },
+            "edge": {"arrowsize": "0.8"},
             # Themes for the group edge with hidden processes
             "edge_hidden": {},
-
         },
     },
     fancy={
@@ -67,7 +66,7 @@ THEMES = dict(
             "fontname": "Helvetica",
         },
         # Basic themes for edges
-        "edge": { "arrowsize": "0.8", "color": "#3d314a" },
+        "edge": {"arrowsize": "0.8", "color": "#3d314a"},
         # Basic themes for edges with hidden processes
         "edge_hidden": {"style": "dashed"},
         # Basic themes for start nodes
@@ -91,10 +90,9 @@ THEMES = dict(
             # Themes for the group node
             "node": {},
             # Themes for the group edge
-            "edge": { "arrowsize": "0.8"},
+            "edge": {"arrowsize": "0.8"},
             # Themes for the group edge with hidden processes
             "edge_hidden": {},
-
         },
     },
     dark={
@@ -134,7 +132,6 @@ THEMES = dict(
             "edge": {},
             # Themes for the group edge with hidden processes
             "edge_hidden": {},
-
         },
     },
     fancy_dark={
@@ -156,13 +153,21 @@ THEMES = dict(
             "fontname": "Helvetica",
         },
         # Basic themes for edges
-        "edge": { "color": "#eeeeee" },
+        "edge": {"color": "#eeeeee"},
         # Basic themes for edges with hidden processes
         "edge_hidden": {"style": "dashed"},
         # Basic themes for start nodes
-        "start": {"shape": "diamond", "style": "solid,filled", "fillcolor": "#4c956c"},
+        "start": {
+            "shape": "diamond",
+            "style": "solid,filled",
+            "fillcolor": "#4c956c",
+        },
         # Basic themes for end nodes
-        "end": {"shape": "rectangle", "style": "solid,filled", "fillcolor": "#f26419"},
+        "end": {
+            "shape": "rectangle",
+            "style": "solid,filled",
+            "fillcolor": "#f26419",
+        },
         # Basic themes for process groups
         "procgroup": {
             # Themes for the group
@@ -175,7 +180,6 @@ THEMES = dict(
             "edge": {},
             # Themes for the group edge with hidden processes
             "edge_hidden": {},
-
         },
     },
 )
@@ -225,9 +229,7 @@ class Group:
                     sub.node(
                         node.name,
                         tooltip=(
-                            node.desc
-                            or desc_from_docstring(node, None)
-                            or ""
+                            node.desc or desc_from_docstring(node, None) or ""
                         ),
                         **diagram.theme.get("start", {}),
                     )
@@ -235,9 +237,7 @@ class Group:
                     sub.node(
                         node.name,
                         tooltip=(
-                            node.desc
-                            or desc_from_docstring(node, None)
-                            or ""
+                            node.desc or desc_from_docstring(node, None) or ""
                         ),
                         **diagram.theme.get("end", {}),
                     )
@@ -245,9 +245,7 @@ class Group:
                     sub.node(
                         node.name,
                         tooltip=(
-                            node.desc
-                            or desc_from_docstring(node, None)
-                            or ""
+                            node.desc or desc_from_docstring(node, None) or ""
                         ),
                     )
 
@@ -313,7 +311,9 @@ class Diagram:
             self.ends.add(node)
 
         if group:
-            self.groups.setdefault(group.name, Group(group.name)).add_node(node)
+            self.groups.setdefault(group.name, Group(group.name)).add_node(
+                node
+            )
         else:
             self.nodes.add(node)
 
@@ -355,13 +355,10 @@ class Diagram:
 
         for node in self.nodes:
             if node in self.starts:
-                print(node, node.__doc__)
                 self.graph.node(
                     node.name,
                     tooltip=(
-                        node.desc
-                        or desc_from_docstring(node, None)
-                        or ""
+                        node.desc or desc_from_docstring(node, None) or ""
                     ),
                     **self.theme.get("start", {}),
                 )
@@ -369,9 +366,7 @@ class Diagram:
                 self.graph.node(
                     node.name,
                     tooltip=(
-                        node.desc
-                        or desc_from_docstring(node, None)
-                        or ""
+                        node.desc or desc_from_docstring(node, None) or ""
                     ),
                     **self.theme.get("end", {}),
                 )
@@ -379,9 +374,7 @@ class Diagram:
                 self.graph.node(
                     node.name,
                     tooltip=(
-                        node.desc
-                        or desc_from_docstring(node, None)
-                        or ""
+                        node.desc or desc_from_docstring(node, None) or ""
                     ),
                 )
 
