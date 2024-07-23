@@ -2,6 +2,6 @@
 
 from .entry import PipenDiagram
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 PipenDiagram.__version__ = __version__
