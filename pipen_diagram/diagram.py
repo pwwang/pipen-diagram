@@ -1,7 +1,11 @@
 """Provides Diagram class that builds and saves the diagrams"""
+
 from __future__ import annotations
 
 from copy import deepcopy
+from hashlib import sha256
+from tempfile import mkdtemp
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,11 +16,11 @@ from typing import (
     MutableMapping,
 )
 
+from yunpath import CloudPath
 from graphviz import Digraph
 from pipen.utils import desc_from_docstring
 
 if TYPE_CHECKING:  # pragma: no cover
-    from pathlib import Path
     from pipen import Proc, ProcGroup
 
 THEMES = dict(
@@ -228,25 +232,19 @@ class Group:
                 if node in diagram.starts:
                     sub.node(
                         node.name,
-                        tooltip=(
-                            node.desc or desc_from_docstring(node, None) or ""
-                        ),
+                        tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                         **diagram.theme.get("start", {}),
                     )
                 elif node in diagram.ends:
                     sub.node(
                         node.name,
-                        tooltip=(
-                            node.desc or desc_from_docstring(node, None) or ""
-                        ),
+                        tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                         **diagram.theme.get("end", {}),
                     )
                 else:
                     sub.node(
                         node.name,
-                        tooltip=(
-                            node.desc or desc_from_docstring(node, None) or ""
-                        ),
+                        tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                     )
 
             for node1, node2, has_hidden in self.edges:
@@ -260,7 +258,7 @@ class Group:
 class Diagram:
     """Build and save diagrams"""
 
-    def __init__(self, name: str, outprefix: Path, savedot: bool) -> None:
+    def __init__(self, name: str, outprefix: CloudPath | Path, savedot: bool) -> None:
         """Constructor"""
         self.graph = Digraph(name.strip())
         # Add some distance between the label and the graph
@@ -311,9 +309,7 @@ class Diagram:
             self.ends.add(node)
 
         if group:
-            self.groups.setdefault(group.name, Group(group.name)).add_node(
-                node
-            )
+            self.groups.setdefault(group.name, Group(group.name)).add_node(node)
         else:
             self.nodes.add(node)
 
@@ -357,25 +353,19 @@ class Diagram:
             if node in self.starts:
                 self.graph.node(
                     node.name,
-                    tooltip=(
-                        node.desc or desc_from_docstring(node, None) or ""
-                    ),
+                    tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                     **self.theme.get("start", {}),
                 )
             elif node in self.ends:
                 self.graph.node(
                     node.name,
-                    tooltip=(
-                        node.desc or desc_from_docstring(node, None) or ""
-                    ),
+                    tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                     **self.theme.get("end", {}),
                 )
             else:
                 self.graph.node(
                     node.name,
-                    tooltip=(
-                        node.desc or desc_from_docstring(node, None) or ""
-                    ),
+                    tooltip=(node.desc or desc_from_docstring(node, None) or ""),
                 )
 
         # edges
@@ -388,6 +378,21 @@ class Diagram:
 
     def save(self) -> None:
         """Save the graph"""
+        outprefix = self.outprefix
+        if isinstance(outprefix, CloudPath):
+            dig = sha256(str(outprefix).encode()).hexdigest()[:8]
+            outprefix = Path(mkdtemp(suffix=dig)) / outprefix.name
+
         if self.savedot:
-            self.graph.save(f"{self.outprefix}.dot")
-        self.graph.render(self.outprefix, format="svg", cleanup=True)
+            dotfile = outprefix.with_name(f"{outprefix.name}.dot")
+            self.graph.save(dotfile)
+            if outprefix != self.outprefix:  # cloud
+                self.outprefix.joinpath(f"{outprefix.name}.dot").write_text(
+                    dotfile.read_text()
+                )
+
+        self.graph.render(outprefix, format="svg", cleanup=True)
+        if outprefix != self.outprefix:
+            self.outprefix.joinpath(f"{outprefix.name}.svg").write_text(
+                Path(f"{outprefix}.svg").read_text()
+            )

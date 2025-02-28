@@ -1,17 +1,12 @@
-from pathlib import Path
-from shutil import rmtree
-from tempfile import gettempdir
 import pytest
+from unittest.mock import MagicMock
+from yunpath import CloudPath
 from pipen import Pipen, Proc, ProcGroup
 from pipen_diagram import PipenDiagram
 
-TEST_TMPDIR = Path(gettempdir()) / "pipen_diagram_tests"
-rmtree(TEST_TMPDIR, ignore_errors=True)
-TEST_TMPDIR.mkdir(parents=True, exist_ok=True)
-
 
 @pytest.fixture
-def pipen():
+def pipen(tmp_path):
     index = Pipen.PIPELINE_COUNT + 1
     return Pipen(
         name=f"pipeline_{index}",
@@ -19,13 +14,13 @@ def pipen():
         loglevel="debug",
         cache=False,
         plugins=[PipenDiagram],
-        plugin_opts={"diagram_savedot": True},
-        outdir=TEST_TMPDIR / f"pipen_{index}",
+        plugin_opts={"diagram_savedot": True, "diagram_loglevel": "debug"},
+        outdir=tmp_path / f"pipen_{index}",
     )
 
 
 @pytest.fixture
-def pipen_dark():
+def pipen_dark(tmp_path):
     index = Pipen.PIPELINE_COUNT + 1
     return Pipen(
         name=f"pipeline_{index}",
@@ -33,13 +28,17 @@ def pipen_dark():
         loglevel="debug",
         cache=False,
         plugins=[PipenDiagram],
-        plugin_opts={"diagram_savedot": False, "diagram_theme": "dark"},
-        outdir=TEST_TMPDIR / f"pipen_dark_{index}",
+        plugin_opts={
+            "diagram_savedot": False,
+            "diagram_theme": "dark",
+            "diagram_loglevel": "debug",
+        },
+        outdir=tmp_path / f"pipen_dark_{index}",
     )
 
 
 @pytest.fixture
-def pipen_custom_theme():
+def pipen_custom_theme(tmp_path):
     index = Pipen.PIPELINE_COUNT + 1
     return Pipen(
         name=f"pipeline_{index}",
@@ -56,8 +55,9 @@ def pipen_custom_theme():
                     penwidth="2",
                 )
             ),
+            "diagram_loglevel": "debug",
         },
-        outdir=TEST_TMPDIR / f"pipen_{index}",
+        outdir=tmp_path / f"pipen_{index}",
     )
 
 
@@ -124,19 +124,41 @@ def test_custom_theme(pipen_custom_theme):
     assert "#59b95f" in svg
 
 
+@pytest.mark.forked
+def test_cloud_outdir(pipen_custom_theme, tmp_path):
+    p1 = Proc.from_proc(NormalProc, input_data=[1])
+    p2 = Proc.from_proc(NormalProc, requires=p1)
+    p3 = Proc.from_proc(HiddenProc, requires=p2)
+    p4 = Proc.from_proc(NormalProc, requires=p3)
+    pipen_custom_theme.outdir = MagicMock(spec=CloudPath)
+
+    def truediv(self, x):
+        subpath = MagicMock(spec=CloudPath)
+        subpath.joinpath = lambda x: tmp_path / x
+        subpath.name = "xyz"
+        return subpath
+
+    pipen_custom_theme.outdir.__truediv__ = truediv
+
+    pipen_custom_theme.set_starts(p1).run()
+    assert tmp_path.joinpath("xyz.svg").exists()
+
+
 class PG(ProcGroup):
     """Process Group"""
+
     @ProcGroup.add_proc
     def c(self):
         """Process C"""
-        class C(Proc):
-            ...
+
+        class C(Proc): ...
 
         return C
 
     @ProcGroup.add_proc
     def c1(self):
         """Process C1"""
+
         class C1(Proc):
             requires = self.c
             plugin_opts = {"diagram_hide": True}
@@ -146,6 +168,7 @@ class PG(ProcGroup):
     @ProcGroup.add_proc
     def c2(self):
         """Process C2"""
+
         class C2(Proc):
             requires = self.c1
 
@@ -154,6 +177,7 @@ class PG(ProcGroup):
     @ProcGroup.add_proc
     def d(self):
         """Process D"""
+
         class D(Proc):
             requires = self.c2
 
@@ -161,29 +185,29 @@ class PG(ProcGroup):
 
 
 @pytest.mark.forked
-def test_group():
+def test_group(tmp_path):
     from pipen.exceptions import ProcInputKeyError
 
     pg = PG()
     with pytest.raises(ProcInputKeyError, match="No input provided"):
         Pipen(
             "MyPipeline",
-            plugin_opts={"diagram_savedot": True},
-            outdir=TEST_TMPDIR / "group1",
+            plugin_opts={"diagram_savedot": True, "diagram_loglevel": "debug"},
+            outdir=tmp_path / "group1",
         ).set_start(pg.c).run()
 
-    dot = (TEST_TMPDIR / "group1" / "diagram.dot").read_text()
+    dot = (tmp_path / "group1" / "diagram.dot").read_text()
     assert "digraph MyPipeline" in dot
     assert "subgraph cluster_PG" in dot
 
 
 @pytest.mark.forked
-def test_theme_not_found():
+def test_theme_not_found(tmp_path):
     pg = PG()
 
     with pytest.raises(ValueError, match="Theme x not found"):
         Pipen(
             "MyPipeline",
-            plugin_opts={"diagram_theme": "x"},
-            outdir=TEST_TMPDIR / "group2",
+            plugin_opts={"diagram_theme": "x", "diagram_loglevel": "debug"},
+            outdir=tmp_path / "group2",
         ).set_start(pg.c).run()

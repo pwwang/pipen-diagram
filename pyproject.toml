@@ -33,6 +33,9 @@ diagram = "pipen_diagram:PipenDiagram"
 addopts = "-vv -n auto -W error::UserWarning -p no:asyncio --cov-config=.coveragerc --cov=pipen_diagram --cov-report xml:.coverage.xml --cov-report term-missing"
 console_output_style = "progress"
 junit_family = "xunit1"
+filterwarnings = [
+    "ignore:.+may lead to deadlocks in the child:DeprecationWarning",
+]
 
 [tool.mypy]
 ignore_missing_imports = true

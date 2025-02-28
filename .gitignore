@@ -116,3 +116,4 @@ t-*.ipynb
 
 *_results
 /test.py
+MagicMock/
