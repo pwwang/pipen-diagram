@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipen-diagram"
-version = "0.12.0"
+version = "0.13.0a1"
 description = "Draw pipeline diagrams for pipen."
 authors = ["pwwang <pwwang@pwwang.com>"]
 license = "MIT"
