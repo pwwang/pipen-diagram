@@ -47,12 +47,17 @@ class PipenDiagram:
         config.plugin_opts.diagram_theme = "default"
         # pipeline level: save dot file?
         config.plugin_opts.diagram_savedot = False
+        # pipeline level: loglevel
+        config.plugin_opts.diagram_loglevel = "info"
         # process level: hide certain processes in diagram
         config.plugin_opts.diagram_hide = False
 
     @plugin.impl
     async def on_start(self, pipen: Pipen) -> None:
         """Print some configuration items of the process"""
+        loglevel = pipen.config.plugin_opts.get("diagram_loglevel", "info")
+        logger.setLevel(loglevel.upper())
+
         logger.debug(
             "Building diagram and saving to `%s/diagram.svg`", pipen.outdir
         )

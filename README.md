@@ -12,6 +12,7 @@ Draw pipeline diagrams for [pipen][1].
 - `diagram_theme`: The name of the theme to use, or a dict of a custom theme.
   - See `pipen_diagram/diagram.py` for the a theme definition
   - See [https://graphviz.org/][2] for theme items
+- `diagram_loglevel`: The log level of the diagram
 - `diagram_savedot`: Whhether to save the dot file (for debugging purpose)
 - `diagram_hide`: Process-level item, whether to hide current process from the diagram
 
