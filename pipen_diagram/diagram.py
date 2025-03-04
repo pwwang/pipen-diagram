@@ -393,6 +393,6 @@ class Diagram:
 
         self.graph.render(outprefix, format="svg", cleanup=True)
         if outprefix != self.outprefix:
-            self.outprefix.joinpath(f"{outprefix.name}.svg").write_text(
+            self.outprefix.with_name(f"{outprefix.name}.svg").write_text(
                 Path(f"{outprefix}.svg").read_text()
             )
