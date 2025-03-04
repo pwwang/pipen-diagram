@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipen-diagram"
-version = "0.13.0a2"
+version = "0.13.0"
 description = "Draw pipeline diagrams for pipen."
 authors = ["pwwang <pwwang@pwwang.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ repository = "https://github.com/pwwang/pipen-diagram"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = { version = "^0.16.0a1", allow-prereleases = true }
+pipen = "^0.16.0"
 graphviz = "^0.20"
 
 [tool.poetry.build]
