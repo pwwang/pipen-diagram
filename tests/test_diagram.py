@@ -131,14 +131,18 @@ def test_cloud_outdir(pipen_custom_theme, tmp_path):
     p3 = Proc.from_proc(HiddenProc, requires=p2)
     p4 = Proc.from_proc(NormalProc, requires=p3)
     pipen_custom_theme.outdir = MagicMock(spec=CloudPath)
+    outdir = tmp_path / "outdir"
+    outdir.mkdir()
 
     def truediv(self, x):
         subpath = MagicMock(spec=CloudPath)
-        subpath.joinpath = lambda x: tmp_path / x
+        subpath.joinpath = lambda x: outdir / x
+        subpath.with_name = lambda x: outdir.parent / x
         subpath.name = "xyz"
         return subpath
 
     pipen_custom_theme.outdir.__truediv__ = truediv
+    pipen_custom_theme.outdir.__str__ = lambda x: str(outdir)
 
     pipen_custom_theme.set_starts(p1).run()
     assert tmp_path.joinpath("xyz.svg").exists()

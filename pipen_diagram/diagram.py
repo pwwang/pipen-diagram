@@ -379,6 +379,7 @@ class Diagram:
     def save(self) -> None:
         """Save the graph"""
         outprefix = self.outprefix
+
         if isinstance(outprefix, CloudPath):
             dig = sha256(str(outprefix).encode()).hexdigest()[:8]
             outprefix = Path(mkdtemp(suffix=dig)) / outprefix.name
@@ -387,12 +388,12 @@ class Diagram:
             dotfile = outprefix.with_name(f"{outprefix.name}.dot")
             self.graph.save(dotfile)
             if outprefix != self.outprefix:  # cloud
-                self.outprefix.joinpath(f"{outprefix.name}.dot").write_text(
+                self.outprefix.with_name(f"{outprefix.name}.dot").write_text(
                     dotfile.read_text()
                 )
 
-        self.graph.render(outprefix, format="svg", cleanup=True)
+        rendered_file = self.graph.render(outprefix, format="svg", cleanup=True)
         if outprefix != self.outprefix:
-            self.outprefix.with_name(f"{outprefix.name}.svg").write_text(
-                Path(f"{outprefix}.svg").read_text()
+            self.outprefix.with_name(f"{self.outprefix.name}.svg").write_text(
+                Path(rendered_file).read_text()
             )

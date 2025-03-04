@@ -648,13 +648,13 @@ executing = ">=2.0,<3.0"
 
 [[package]]
 name = "pipen"
-version = "0.16.0a4"
+version = "0.16.0a8"
 description = "A pipeline framework for python"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "pipen-0.16.0a4-py3-none-any.whl", hash = "sha256:df95e8afbbf48e8e8cbea0077666f8c0aee031ce31e098139992a34554c33246"},
-    {file = "pipen-0.16.0a4.tar.gz", hash = "sha256:afc8246456552353eef126d4152154454ea628c1dea26c4964229f29d98b96e6"},
+    {file = "pipen-0.16.0a8-py3-none-any.whl", hash = "sha256:cd5a255913de91bb32107ade8e2cecb56ae47db15cc672ec50efd78bec6b4cbe"},
+    {file = "pipen-0.16.0a8.tar.gz", hash = "sha256:63512fab632f56f24f98c56350dae46929137ec343c8676eed6b9987e9e5b436"},
 ]
 
 [package.dependencies]
@@ -720,13 +720,13 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pytest"
-version = "8.3.4"
+version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-8.3.4-py3-none-any.whl", hash = "sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6"},
-    {file = "pytest-8.3.4.tar.gz", hash = "sha256:965370d062bce11e73868e0335abac31b4d3de0e82f4007408d242b4f8610761"},
+    {file = "pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820"},
+    {file = "pytest-8.3.5.tar.gz", hash = "sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845"},
 ]
 
 [package.dependencies]
@@ -1102,13 +1102,13 @@ files = [
 
 [[package]]
 name = "xqute"
-version = "0.8.0"
+version = "0.8.1"
 description = "A job management system for python"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "xqute-0.8.0-py3-none-any.whl", hash = "sha256:ea0ba79131a0374d1561bfea430ea49e623e2eaa755971ca43be157b461aa3b5"},
-    {file = "xqute-0.8.0.tar.gz", hash = "sha256:b16dc828cc9ae9446829ab97314b53d26b0aa1eafdf5d7fd594e4ae945840f4f"},
+    {file = "xqute-0.8.1-py3-none-any.whl", hash = "sha256:dc8b98595e8cd96965e05640adc816d34a9d80e9603d9d1682749fa75950a40c"},
+    {file = "xqute-0.8.1.tar.gz", hash = "sha256:98797770cb33a0af5de3eadfe0810fb2520d0d1ee3679beaabede042f306cbd0"},
 ]
 
 [package.dependencies]
