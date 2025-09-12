@@ -88,8 +88,17 @@ def test_diagram(pipen, caplog):
 def test_hide_end_proc(pipen):
     p1 = Proc.from_proc(NormalProc, input_data=[1])
     p2 = Proc.from_proc(HiddenProc, requires=p1)
-    with pytest.raises(ValueError, match="Cannot hide end process"):
+    # ValueError: Cannot hide end process {node} from diagram.
+    #   The above exception was the direct cause of the following exception:
+    # simplug.ResultError: Error while calling hook implementation, plugin=diagram; spec=[async]on_start
+    with pytest.raises(Exception) as excinfo:
         pipen.set_starts(p1).run()
+    # The plugin system may wrap the original ValueError; ensure the original message is present.
+    err = excinfo.value
+    cause = getattr(err, "__cause__", None)
+    assert "Cannot hide end process" in str(err) or (
+        cause and "Cannot hide end process" in str(cause)
+    )
 
 
 @pytest.mark.forked
@@ -99,8 +108,14 @@ def test_hide_multi_rel_proc(pipen):
     p3 = Proc.from_proc(HiddenProc, requires=[p1, p2])
     p4 = Proc.from_proc(NormalProc, requires=p3)
     p5 = Proc.from_proc(NormalProc, requires=p3)
-    with pytest.raises(ValueError, match="Cannot hide process"):
+    with pytest.raises(Exception) as excinfo:
         pipen.set_starts(p1, p2).run()
+
+    err = excinfo.value
+    cause = getattr(err, "__cause__", None)
+    assert "Cannot hide process" in str(err) or (
+        cause and "Cannot hide process" in str(cause)
+    )
 
 
 @pytest.mark.forked
@@ -209,9 +224,16 @@ def test_group(tmp_path):
 def test_theme_not_found(tmp_path):
     pg = PG()
 
-    with pytest.raises(ValueError, match="Theme x not found"):
+    # with pytest.raises(ValueError, match="Theme x not found"):
+    with pytest.raises(Exception) as excinfo:
         Pipen(
             "MyPipeline",
             plugin_opts={"diagram_theme": "x", "diagram_loglevel": "debug"},
             outdir=tmp_path / "group2",
         ).set_start(pg.c).run()
+
+    err = excinfo.value
+    cause = getattr(err, "__cause__", None)
+    assert "Theme x not found" in str(err) or (
+        cause and "Theme x not found" in str(cause)
+    )

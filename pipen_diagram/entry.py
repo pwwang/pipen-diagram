@@ -41,7 +41,7 @@ class PipenDiagram:
     __version__: str = None
 
     @plugin.impl
-    def on_setup(self, config: Dict[str, Any]) -> None:
+    def on_setup(config: Dict[str, Any]) -> None:
         """Default configurations"""
         # pipeline level: name or detailed theme
         config.plugin_opts.diagram_theme = "default"
@@ -53,7 +53,7 @@ class PipenDiagram:
         config.plugin_opts.diagram_hide = False
 
     @plugin.impl
-    async def on_start(self, pipen: Pipen) -> None:
+    async def on_start(pipen: Pipen) -> None:
         """Print some configuration items of the process"""
         loglevel = pipen.config.plugin_opts.get("diagram_loglevel", "info")
         logger.setLevel(loglevel.upper())
