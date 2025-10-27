@@ -41,16 +41,16 @@ class PipenDiagram:
     __version__: str = None
 
     @plugin.impl
-    def on_setup(config: Dict[str, Any]) -> None:
+    def on_setup(pipen: Pipen) -> None:
         """Default configurations"""
         # pipeline level: name or detailed theme
-        config.plugin_opts.diagram_theme = "default"
+        pipen.config.plugin_opts.diagram_theme = "default"
         # pipeline level: save dot file?
-        config.plugin_opts.diagram_savedot = False
+        pipen.config.plugin_opts.diagram_savedot = False
         # pipeline level: loglevel
-        config.plugin_opts.diagram_loglevel = "info"
+        pipen.config.plugin_opts.diagram_loglevel = "info"
         # process level: hide certain processes in diagram
-        config.plugin_opts.diagram_hide = False
+        pipen.config.plugin_opts.diagram_hide = False
 
     @plugin.impl
     async def on_start(pipen: Pipen) -> None:

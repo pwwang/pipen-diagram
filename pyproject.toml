@@ -10,7 +10,7 @@ repository = "https://github.com/pwwang/pipen-diagram"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = "0.17.*"
+pipen = "^0.17.22"
 graphviz = "^0.21"
 
 [tool.poetry.build]
