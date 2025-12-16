@@ -23,8 +23,8 @@ pytest-xdist = "^3"
 pytest-forked = "^1"
 
 [build-system]
-requires = ["poetry>=1.0"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.plugins.pipen]
 diagram = "pipen_diagram:PipenDiagram"
