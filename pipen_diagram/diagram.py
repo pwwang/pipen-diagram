@@ -16,7 +16,7 @@ from typing import (
     MutableMapping,
 )
 
-from yunpath import CloudPath
+from panpath import CloudPath, PanPath
 from graphviz import Digraph
 from pipen.utils import desc_from_docstring
 
@@ -258,7 +258,7 @@ class Group:
 class Diagram:
     """Build and save diagrams"""
 
-    def __init__(self, name: str, outprefix: CloudPath | Path, savedot: bool) -> None:
+    def __init__(self, name: str, outprefix: Path, savedot: bool) -> None:
         """Constructor"""
         self.graph = Digraph(name.strip())
         # Add some distance between the label and the graph
@@ -376,24 +376,30 @@ class Diagram:
                 **(self.theme.get("edge_hidden", {}) if has_hidden else {}),
             )
 
-    def save(self) -> None:
+    async def save(self) -> None:
         """Save the graph"""
         outprefix = self.outprefix
+        # in case pipeline outdir is not created
+        await outprefix.parent.a_mkdir(parents=True, exist_ok=True)
 
         if isinstance(outprefix, CloudPath):
             dig = sha256(str(outprefix).encode()).hexdigest()[:8]
-            outprefix = Path(mkdtemp(suffix=dig)) / outprefix.name
+            outprefix = PanPath(mkdtemp(suffix=dig)) / outprefix.name
 
         if self.savedot:
             dotfile = outprefix.with_name(f"{outprefix.name}.dot")
-            self.graph.save(dotfile)
+            # self.graph.save(dotfile)
+            async with dotfile.a_open("w") as f:
+                for uline in self.graph:
+                    await f.write(uline)
+
             if outprefix != self.outprefix:  # cloud
-                self.outprefix.with_name(f"{outprefix.name}.dot").write_text(
-                    dotfile.read_text()
+                await self.outprefix.with_name(f"{outprefix.name}.dot").a_write_text(
+                    await dotfile.a_read_text()
                 )
 
         rendered_file = self.graph.render(outprefix, format="svg", cleanup=True)
         if outprefix != self.outprefix:
-            self.outprefix.with_name(f"{self.outprefix.name}.svg").write_text(
-                Path(rendered_file).read_text()
+            await self.outprefix.with_name(f"{self.outprefix.name}.svg").a_write_text(
+                await PanPath(rendered_file).a_read_text()
             )

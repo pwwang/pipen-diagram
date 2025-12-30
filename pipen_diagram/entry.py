@@ -1,7 +1,7 @@
 """Creates the plugin"""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Tuple, Type
+from typing import TYPE_CHECKING, Iterable, Tuple, Type
 from pipen import plugin
 from pipen.utils import get_logger
 
@@ -115,4 +115,4 @@ class PipenDiagram:
                 )
 
         diagram.build()
-        diagram.save()
+        await diagram.save()

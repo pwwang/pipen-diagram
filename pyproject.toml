@@ -10,7 +10,7 @@ repository = "https://github.com/pwwang/pipen-diagram"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pipen = "^1.0"
+pipen = {version = "1.1.*", allow-prereleases = true}
 graphviz = "^0.21"
 
 [tool.poetry.build]

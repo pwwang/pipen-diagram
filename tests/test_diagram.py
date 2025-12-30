@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from yunpath import CloudPath
+from panpath import CloudPath, PanPath
 from pipen import Pipen, Proc, ProcGroup
 from pipen_diagram import PipenDiagram
 
@@ -146,7 +146,7 @@ def test_cloud_outdir(pipen_custom_theme, tmp_path):
     p3 = Proc.from_proc(HiddenProc, requires=p2)
     p4 = Proc.from_proc(NormalProc, requires=p3)
     pipen_custom_theme.outdir = MagicMock(spec=CloudPath)
-    outdir = tmp_path / "outdir"
+    outdir = PanPath(tmp_path) / "outdir"
     outdir.mkdir()
 
     def truediv(self, x):
@@ -154,6 +154,7 @@ def test_cloud_outdir(pipen_custom_theme, tmp_path):
         subpath.joinpath = lambda x: outdir / x
         subpath.with_name = lambda x: outdir.parent / x
         subpath.name = "xyz"
+        subpath.parent = outdir
         return subpath
 
     pipen_custom_theme.outdir.__truediv__ = truediv
@@ -206,6 +207,8 @@ class PG(ProcGroup):
 @pytest.mark.forked
 def test_group(tmp_path):
     from pipen.exceptions import ProcInputKeyError
+
+    tmp_path = PanPath(tmp_path)
 
     pg = PG()
     with pytest.raises(ProcInputKeyError, match="No input provided"):
