@@ -1,6 +1,6 @@
 [project]
 name = "pipen-diagram"
-version = "1.1.1"
+dynamic = ["version"]
 description = "Draw pipeline diagrams for pipen."
 authors = [{name = "pwwang", email = "pwwang@pwwang.com"}]
 license = "MIT"
@@ -13,6 +13,9 @@ dependencies = [
     "pipen>=1.1",
     "graphviz>=0.21",
 ]
+
+[tool.hatch.version]
+path = "pipen_diagram/__init__.py"
 
 [project.urls]
 Homepage = "https://github.com/pwwang/pipen-diagram"
