@@ -1,33 +1,37 @@
-[tool.poetry]
+[project]
 name = "pipen-diagram"
 version = "1.1.1"
 description = "Draw pipeline diagrams for pipen."
-authors = ["pwwang <pwwang@pwwang.com>"]
+authors = [{name = "pwwang", email = "pwwang@pwwang.com"}]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/pwwang/pipen-diagram"
-repository = "https://github.com/pwwang/pipen-diagram"
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    # Lower bound includes the prerelease marker (1.1.0rc0) so uv's default
+    # prerelease policy (`if-necessary-or-explicit`) still considers pipen
+    # pre-releases, matching poetry's `1.1.*` + `allow-prereleases = true`.
+    "pipen>=1.1",
+    "graphviz>=0.21",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-pipen = {version = "1.1.*", allow-prereleases = true}
-graphviz = "^0.21"
+[project.urls]
+Homepage = "https://github.com/pwwang/pipen-diagram"
+Repository = "https://github.com/pwwang/pipen-diagram"
 
-[tool.poetry.build]
-generate-setup-file = true
+[project.entry-points.pipen]
+diagram = "pipen_diagram:PipenDiagram"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8"
-pytest-cov = "^6"
-pytest-xdist = "^3"
-pytest-forked = "^1"
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+    "pytest-cov>=6,<7",
+    "pytest-xdist>=3,<4",
+    "pytest-forked>=1,<2",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.plugins.pipen]
-diagram = "pipen_diagram:PipenDiagram"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 addopts = "-vv -n auto -W error::UserWarning -p no:asyncio --cov-config=.coveragerc --cov=pipen_diagram --cov-report xml:.coverage.xml --cov-report term-missing"
@@ -56,3 +60,6 @@ exclude = ["tests/"]
 # Same as Black.
 line-length = 88
 indent-width = 4
+
+[tool.uv]
+prerelease = "allow"

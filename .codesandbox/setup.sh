@@ -1,6 +1,6 @@
 WORKSPACE="/workspace"
 
 # Install python dependencies
-poetry update && poetry install
+uv sync
 
 cd $WORKSPACE
