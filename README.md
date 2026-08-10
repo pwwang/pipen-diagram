@@ -1,6 +1,11 @@
-# pipen-diagram
+<div align="center">
+    <img src="./logo.png" width="240px" alt="pipen-diagram logo" />
 
-Draw pipeline diagrams for [pipen][1].
+   <p style="font-weight:bold;">Draw pipeline diagrams for
+   <a href="https://github.com/pwwang/pipen" target="_blank">pipen</a>.</p>
+   </p>
+
+</div>
 
 ## Features
 
